@@ -1,0 +1,35 @@
+# Deep Learning & Computer Vision
+torch>=2.0.0
+torchvision>=0.15.0
+ultralytics>=8.0.0  # YOLOv8
+opencv-python>=4.8.0
+easyocr>=1.7.0
+transformers>=4.30.0  # HuggingFace models
+timm>=0.9.0  # PyTorch Image Models (for some transformers models)
+
+# Speech & NLP
+openai-whisper>=20230314
+spacy>=3.7.0
+ingredient-parser-nlp>=1.0.0
+
+# Video Processing
+yt-dlp>=2023.10.0
+ffmpeg-python>=0.2.0
+
+# Experiment Tracking
+mlflow>=2.8.0
+
+# Data & Utilities
+numpy>=1.24.0
+Pillow>=10.0.0
+PyYAML>=6.0
+python-dateutil>=2.8.0
+thefuzz>=0.20.0  # Fuzzy string matching
+python-Levenshtein>=0.21.0  # Speed up thefuzz
+
+# CLI
+click>=8.1.0
+tqdm>=4.66.0
+
+# Validation
+jsonschema>=4.19.0

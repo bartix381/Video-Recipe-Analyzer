@@ -1,0 +1,44 @@
+{
+  "title": null,
+  "source_url": "https://www.youtube.com/shorts/ckSdRrgnbQI",
+  "ingredients": [
+    {
+      "name": "carrot",
+      "quantity": null,
+      "unit": null,
+      "source": "visual",
+      "confidence": 0.55322265625,
+      "timestamps": [
+        8.0
+      ],
+      "raw_text": null,
+      "alternative_note": null
+    },
+    {
+      "name": "orange",
+      "quantity": null,
+      "unit": null,
+      "source": "visual",
+      "confidence": 0.56787109375,
+      "timestamps": [
+        4.0
+      ],
+      "raw_text": null,
+      "alternative_note": null
+    }
+  ],
+  "steps": [],
+  "extraction_date": "2025-11-26T13:47:40.841738",
+  "processing_time": 25.891976833343506,
+  "metadata": {
+    "models_used": {
+      "object_detection": "yolov8n.pt",
+      "ocr": "easyocr",
+      "transcription": "base"
+    },
+    "config": {
+      "fps": 1,
+      "yolo_conf": 0.25
+    }
+  }
+}
