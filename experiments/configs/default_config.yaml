@@ -1,0 +1,96 @@
+# Recipe Video Extraction Configuration
+
+# Video Processing
+video:
+  max_duration: 1800  # 30 minutes in seconds
+  cache_ttl: 86400    # 24 hours in seconds
+  download_timeout: 300  # 5 minutes
+
+# Frame Extraction
+frame_extraction:
+  fps: 1  # Frames per second to extract
+  format: "jpg"
+  quality: 95
+
+# Object Detection (YOLOv8)
+object_detection:
+  model: "yolov8n.pt"  # Options: yolov8n, yolov8s, yolov8m, yolov8l, yolov8x
+  conf_threshold: 0.25  # Confidence threshold
+  iou_threshold: 0.45   # IoU threshold for NMS
+  max_det: 300          # Maximum detections per image
+  device: "auto"        # auto, cpu, mps, cuda
+  fp16: true           # Use FP16 inference on Metal/CUDA
+
+# Food Classification (HuggingFace)
+food_classification:
+  enabled: true  # Use food classifier instead of/in addition to YOLOv8
+  model: "nateraw/food"  # HuggingFace model ID (Food-101 with 101 classes)
+  conf_threshold: 0.10  # Lower threshold for food detection
+  top_k: 3  # Get top K predictions per frame
+  device: "auto"  # auto, cpu, mps, cuda
+
+# OCR (EasyOCR)
+ocr:
+  languages: ["en"]     # Language codes
+  decoder: "beamsearch"
+  beamWidth: 5
+  confidence_threshold: 0.4
+  paragraph: false
+  batch_size: 1
+
+# Speech-to-Text (Whisper)
+transcription:
+  model: "base"  # Options: tiny, base, small, medium, large
+  language: null  # null for auto-detection, or specify "en", "es", etc.
+  device: "auto"
+  fp16: true
+  condition_on_previous_text: true
+
+# Ingredient Parsing
+ingredient_parsing:
+  fuzzy_match_threshold: 85  # Percentage for deduplication
+  merge_similar: true
+  normalize_units: true
+  detect_substitutions: true  # Detect "or" patterns
+
+# Step Parsing
+step_parsing:
+  action_verbs:
+    - "mix"
+    - "whisk"
+    - "bake"
+    - "boil"
+    - "chop"
+    - "slice"
+    - "dice"
+    - "heat"
+    - "add"
+    - "pour"
+    - "stir"
+    - "cool"
+    - "refrigerate"
+    - "fry"
+    - "simmer"
+    - "blend"
+    - "combine"
+    - "fold"
+    - "season"
+  min_confidence: 0.6
+
+# Output
+output:
+  default_format: "json"  # json, markdown, text
+  pretty_print: true
+  include_metadata: true
+
+# MLflow Tracking
+mlflow:
+  experiment_name: "recipe-video-extraction"
+  tracking_uri: "./experiments/mlruns"
+  log_artifacts: true
+  log_models: true
+
+# Performance
+performance:
+  num_workers: 4
+  prefetch_factor: 2

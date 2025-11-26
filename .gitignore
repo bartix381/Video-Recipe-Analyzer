@@ -205,3 +205,23 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Project-specific
+cache/
+outputs/
+experiments/mlruns/
+*.mp4
+*.webm
+*.mkv
+*.avi
+*.mov
+*.m4a
+*.wav
+*.mp3
+
+# MLflow
+mlruns/
+
+# Temporary files
+tmp/
+temp/
