@@ -6,6 +6,7 @@ opencv-python>=4.8.0
 easyocr>=1.7.0
 transformers>=4.30.0  # HuggingFace models
 timm>=0.9.0  # PyTorch Image Models (for some transformers models)
+roboflow>=1.1.0  # Roboflow hosted inference API
 
 # Speech & NLP
 openai-whisper>=20230314
@@ -26,6 +27,7 @@ PyYAML>=6.0
 python-dateutil>=2.8.0
 thefuzz>=0.20.0  # Fuzzy string matching
 python-Levenshtein>=0.21.0  # Speed up thefuzz
+python-dotenv>=1.0.0  # Load .env files
 
 # CLI
 click>=8.1.0

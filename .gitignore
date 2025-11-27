@@ -209,6 +209,7 @@ __marimo__/
 # Project-specific
 cache/
 outputs/
+!outputs/README.md  # Keep the outputs directory documentation
 experiments/mlruns/
 *.mp4
 *.webm

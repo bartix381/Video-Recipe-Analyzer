@@ -29,8 +29,13 @@ class RecipePipeline:
         """
         self.config = config
         
-        # Initialize cache
-        cache_dir = Path("cache")
+        # Get project root directory (where the repo is)
+        # This file is at: Video-Recipe-Analyzer/src/pipeline/recipe_pipeline.py
+        # So project root is 2 levels up
+        self.project_root = Path(__file__).parent.parent.parent.resolve()
+        
+        # Initialize cache (always relative to project root)
+        cache_dir = self.project_root / "cache"
         cache_ttl = config.get('video.cache_ttl', 86400) // 3600
         self.cache = VideoCache(str(cache_dir), cache_ttl)
         
@@ -40,12 +45,12 @@ class RecipePipeline:
         self.youtube_downloader = YouTubeDownloader(str(cache_dir), max_duration, timeout)
         self.instagram_downloader = InstagramDownloader(str(cache_dir), max_duration, timeout)
         
-        # Initialize extractors
+        # Initialize extractors (always relative to project root)
         fps = config.get('frame_extraction.fps', 1.0)
         format = config.get('frame_extraction.format', 'jpg')
         quality = config.get('frame_extraction.quality', 95)
-        self.frame_extractor = FrameExtractor(fps, "outputs/frames", format, quality)
-        self.audio_extractor = AudioExtractor("outputs/audio", "wav")
+        self.frame_extractor = FrameExtractor(fps, str(self.project_root / "outputs" / "frames"), format, quality)
+        self.audio_extractor = AudioExtractor(str(self.project_root / "outputs" / "audio"), "wav")
         
         # Initialize ML models (lazy loading)
         self._object_detector = None
@@ -58,10 +63,13 @@ class RecipePipeline:
         self.quantity_parser = QuantityParser()
         self.ingredient_parser = IngredientParser(fuzzy_threshold)
         
-        # Initialize MLflow
+        # Initialize MLflow (always relative to project root)
+        mlflow_uri = config.get('mlflow.tracking_uri', './experiments/mlruns')
+        if not Path(mlflow_uri).is_absolute():
+            mlflow_uri = str(self.project_root / mlflow_uri.lstrip('./'))
         self.mlflow = MLflowTracker(
             config.get('mlflow.experiment_name', 'recipe-video-extraction'),
-            config.get('mlflow.tracking_uri', './experiments/mlruns')
+            mlflow_uri
         )
         
         logger.info("RecipePipeline initialized")
@@ -95,6 +103,31 @@ class RecipePipeline:
                     device=str(device),
                 )
         return self._food_classifier
+    
+    @property
+    def roboflow_detector(self):
+        """Lazy load Roboflow detector."""
+        if not hasattr(self, '_roboflow_detector'):
+            self._roboflow_detector = None
+        if self._roboflow_detector is None:
+            cfg = self.config.get_section('roboflow_detection')
+            if cfg.get('enabled', False):
+                import os
+                from ..models import RoboflowDetector
+                # Get API key from config or environment variable
+                api_key = cfg.get('api_key') or os.getenv('ROBOFLOW_API_KEY')
+                if not api_key:
+                    logger.warning("Roboflow detection enabled but no API key provided. Set ROBOFLOW_API_KEY environment variable.")
+                    return None
+                self._roboflow_detector = RoboflowDetector(
+                    api_key=api_key,
+                    workspace=cfg.get('workspace', 'python-wfiwe'),
+                    project=cfg.get('project', 'ingredients-mqhxf'),
+                    version=cfg.get('version', 1),
+                    conf_threshold=cfg.get('conf_threshold', 0.40),
+                    overlap_threshold=cfg.get('overlap_threshold', 0.30),
+                )
+        return self._roboflow_detector
     
     @property
     def ocr_engine(self):
@@ -160,9 +193,12 @@ class RecipePipeline:
             logger.info("Step 3/6: Extracting audio...")
             audio_path = self.audio_extractor.extract(video.local_path)
             
-            # Step 4: Analyze frames (food classification or object detection + OCR)
+            # Step 4: Analyze frames (Roboflow, food classification, or object detection + OCR)
             logger.info("Step 4/6: Analyzing frames...")
-            if self.food_classifier is not None:
+            if self.roboflow_detector is not None:
+                logger.info("Using Roboflow ingredient detection (31 ingredient classes)")
+                frames = self.roboflow_detector.detect_batch(frames)
+            elif self.food_classifier is not None:
                 logger.info("Using HuggingFace food classifier")
                 frames = self.food_classifier.classify_batch(frames)
             else:
