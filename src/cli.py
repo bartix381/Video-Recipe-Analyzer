@@ -3,6 +3,10 @@ import click
 import logging
 import sys
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Setup logging
 logging.basicConfig(
@@ -21,7 +25,7 @@ def cli():
 
 @cli.command()
 @click.argument('url')
-@click.option('--output', '-o', default='recipe.json', help='Output file path')
+@click.option('--output', '-o', default='outputs/recipes/recipe.json', help='Output file path (relative to project root or absolute)')
 @click.option('--format', '-f', type=click.Choice(['json', 'markdown', 'text']), default='json', help='Output format')
 @click.option('--config', '-c', help='Path to custom config file')
 @click.option('--fps', type=float, help='Frame extraction rate (overrides config)')
@@ -29,8 +33,21 @@ def cli():
 @click.option('--detector', type=click.Choice(['yolov8n', 'yolov8s', 'yolov8m', 'yolov8l', 'yolov8x']), help='YOLO model')
 def extract(url, output, format, config, fps, whisper_model, detector):
     """Extract recipe from video URL."""
+    # Get project root directory (where this file's parent's parent is)
+    project_root = Path(__file__).parent.parent.resolve()
+    
+    # Convert output path to absolute path within project
+    output_path = Path(output)
+    if not output_path.is_absolute():
+        # If just a filename (no directory), put it in outputs/recipes/
+        if len(output_path.parts) == 1:
+            output_path = project_root / "outputs" / "recipes" / output_path
+        else:
+            # If relative path with directory, make it relative to project root
+            output_path = project_root / output_path
+    
     logger.info(f"Extracting recipe from: {url}")
-    logger.info(f"Output: {output} (format: {format})")
+    logger.info(f"Output: {output_path} (format: {format})")
     
     try:
         from .utils import load_config
@@ -51,10 +68,17 @@ def extract(url, output, format, config, fps, whisper_model, detector):
         pipeline = RecipePipeline(cfg)
         recipe = pipeline.process(url)
         
-        # Save output
-        pipeline.save_output(recipe, output, format)
+        # Save output (use the resolved absolute path)
+        pipeline.save_output(recipe, str(output_path), format)
         
-        logger.info(f"✓ Recipe extracted successfully: {output}")
+        # Show relative path from project root for cleaner output
+        try:
+            rel_path = output_path.relative_to(project_root)
+            display_path = str(rel_path)
+        except ValueError:
+            display_path = str(output_path)
+        
+        logger.info(f"✓ Recipe extracted successfully: {display_path}")
         logger.info(f"  - Found {len(recipe.ingredients)} ingredients")
         logger.info(f"  - Found {len(recipe.steps)} steps")
         logger.info(f"  - Processing time: {recipe.processing_time:.1f}s")
@@ -87,8 +111,11 @@ def cache_info():
     try:
         from .utils import load_config, VideoCache
         
+        # Get project root
+        project_root = Path(__file__).parent.parent.resolve()
+        
         cfg = load_config()
-        cache_dir = Path("cache")
+        cache_dir = project_root / "cache"
         cache_ttl = cfg.get('video.cache_ttl', 86400) // 3600
         
         cache = VideoCache(str(cache_dir), cache_ttl)
@@ -112,8 +139,11 @@ def cache_clear():
     try:
         from .utils import load_config, VideoCache
         
+        # Get project root
+        project_root = Path(__file__).parent.parent.resolve()
+        
         cfg = load_config()
-        cache_dir = Path("cache")
+        cache_dir = project_root / "cache"
         cache_ttl = cfg.get('video.cache_ttl', 86400) // 3600
         
         cache = VideoCache(str(cache_dir), cache_ttl)

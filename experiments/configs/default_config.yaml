@@ -23,11 +23,21 @@ object_detection:
 
 # Food Classification (HuggingFace)
 food_classification:
-  enabled: true  # Use food classifier instead of/in addition to YOLOv8
+  enabled: false  # Use food classifier instead of/in addition to YOLOv8
   model: "nateraw/food"  # HuggingFace model ID (Food-101 with 101 classes)
   conf_threshold: 0.10  # Lower threshold for food detection
   top_k: 3  # Get top K predictions per frame
   device: "auto"  # auto, cpu, mps, cuda
+
+# Ingredient Detection (Roboflow) - RAW INGREDIENTS, not dishes
+roboflow_detection:
+  enabled: true  # Use Roboflow ingredient detection (31 ingredient classes)
+  api_key: ""  # Get from https://app.roboflow.com/settings/api (set via env ROBOFLOW_API_KEY)
+  workspace: "python-wfiwe"
+  project: "ingredients-mqhxf"
+  version: 1
+  conf_threshold: 0.40  # Confidence threshold
+  overlap_threshold: 0.30  # Overlap threshold for NMS
 
 # OCR (EasyOCR)
 ocr:
@@ -42,8 +52,8 @@ ocr:
 transcription:
   model: "base"  # Options: tiny, base, small, medium, large
   language: null  # null for auto-detection, or specify "en", "es", etc.
-  device: "auto"
-  fp16: true
+  device: "cpu"  # Use CPU to avoid MPS NaN errors
+  fp16: false    # Disable FP16 for CPU
   condition_on_previous_text: true
 
 # Ingredient Parsing
